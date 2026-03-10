@@ -36,16 +36,16 @@ jobs:
         key: ${{ secrets.GCP_SSH_KEY }}
         port: 22
         script: |
+          # 確保進入正確目錄
           if [ ! -d "PET_AI_ASSISTANT" ]; then
             git clone https://github.com/steve-shih/PET_AI_ASSISTANT.git
           fi
           cd PET_AI_ASSISTANT
+          
+          # 更新代碼
           git fetch origin main
           git reset --hard origin/main
           
-          # 自動偵測 docker-compose 或 docker compose
-          if command -v docker-compose >/dev/null 2>&1; then
-            docker-compose down && docker-compose up -d --build
-          else
-            docker compose down && docker compose up -d --build
-          fi
+          # 啟動服務 (使用 GCP 支援的 docker-compose)
+          docker-compose down || true
+          docker-compose up -d --build
