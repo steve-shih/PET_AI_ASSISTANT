@@ -1,4 +1,4 @@
-name: BreedGenetics CI/CD & AI Review (Claude Score)
+name: 🧬 BreedGenetics CI & AI Review
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
         fi
         echo "DIFF_FILE=changes.diff" >> $GITHUB_ENV
 
-    - name: AI Code Review (Claude)
+    - name: AI Code Review (Claude Score)
       env:
         CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       run: |
@@ -54,7 +54,6 @@ jobs:
 
         DIFF_CONTENT=$(cat changes.diff | head -c 15000)
         
-        # 強制評分格式的 Prompt
         PROMPT="你是一位資深的 Full-Stack 工程師與技術架構師。請根據以下 Git Diff 內容，從三個維度進行評分（1-5 分，5 分為最佳），並提供具體建議：\n\n1. **代碼品質 (Quality)**: 是否有潛在 Bug 或安全風險？\n2. **語法規範 (Style)**: 代碼是否整潔、符合該語言最佳實踐？\n3. **複雜度 (Complexity)**: 邏輯是否過於混亂、有無優化空間？\n\n請嚴格按照以下格式輸出：\n\n--- [📊 Code Review Score Report] ---\n- 代碼品質: [分數]\n- 語法規範: [分數]\n- 複雜度: [分數]\n- **總分: [加總]/15**\n\n--- [📝 具體改進建議] ---\n[在此提供詳細建議]\n\n變更內容如下：\n$DIFF_CONTENT"
         
         jq -n --arg diff "$DIFF_CONTENT" \
@@ -74,33 +73,4 @@ jobs:
              -H "content-type: application/json" \
              -d @payload.json > result.json
         
-        ERROR_MSG=$(cat result.json | jq -r '.error.message // empty')
-        if [ ! -z "$ERROR_MSG" ]; then
-          echo "❌ Claude API 報錯: $ERROR_MSG"
-          exit 0
-        fi
-
-        echo "=========================================="
-        echo "🚀 Claude 核心代碼評分報告 :"
-        echo "=========================================="
         cat result.json | jq -r '.content[0].text'
-        echo "=========================================="
-
-  deploy:
-    needs: [backend-tests, ai-review]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-    - name: Deploy to GCP VM via SSH
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.GCP_IP }}
-        username: ${{ secrets.GCP_USERNAME }}
-        key: ${{ secrets.GCP_SSH_KEY }}
-        port: 22
-        script: |
-          cd ~/PET_AI_ASSISTANT || exit
-          git fetch origin main
-          git reset --hard origin/main
-          docker-compose down || true
-          docker-compose up -d --build
