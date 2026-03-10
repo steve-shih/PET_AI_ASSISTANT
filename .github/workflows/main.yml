@@ -28,11 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-    - name: Debug Check Secrets
-      run: |
-        echo "Check if GCP_IP is defined..."
-        if [ -z "${{ secrets.GCP_IP }}" ]; then echo "GCP_IP is EMPTY"; else echo "GCP_IP exists"; fi
-        
     - name: Deploy to GCP VM via SSH
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -47,5 +42,10 @@ jobs:
           cd PET_AI_ASSISTANT
           git fetch origin main
           git reset --hard origin/main
-          docker compose down
-          docker compose up -d --build
+          
+          # 自動偵測 docker-compose 或 docker compose
+          if command -v docker-compose >/dev/null 2>&1; then
+            docker-compose down && docker-compose up -d --build
+          else
+            docker compose down && docker compose up -d --build
+          fi
