@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend
+    container_name: breedcat-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount data.json to persist gene settings outside the container
+      - ./backend/data.json:/app/data.json
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+
+  frontend:
+    build: ./frontend
+    container_name: breedcat-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
