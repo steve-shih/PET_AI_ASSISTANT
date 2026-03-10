@@ -1,0 +1,29 @@
+name: 🚀 BreedGenetics Scheduled Deployment
+
+on:
+  schedule:
+    # 每天台灣時間 晚上 11 點執行 (11 PM CST is 3 PM UTC)
+    - cron: '0 15 * * *'
+  # 也保留手動點擊按鈕部署的功能
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy to GCP VM via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.GCP_IP }}
+        username: ${{ secrets.GCP_USERNAME }}
+        key: ${{ secrets.GCP_SSH_KEY }}
+        port: 22
+        script: |
+          # 進入專案目錄並更新
+          cd ~/PET_AI_ASSISTANT || exit
+          git fetch origin main
+          git reset --hard origin/main
+          
+          # 重啟服務
+          docker-compose down || true
+          docker-compose up -d --build

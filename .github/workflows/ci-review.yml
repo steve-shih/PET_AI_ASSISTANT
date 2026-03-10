@@ -1,0 +1,76 @@
+name: 🧬 BreedGenetics CI & AI Review
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main", "feature/full-deployment" ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run tests
+      run: python -m unittest test_genetics.py
+
+  ai-review:
+    needs: backend-tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Get Code Changes
+      id: get_diff
+      run: |
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          git diff origin/${{ github.base_ref }} HEAD > changes.diff
+        else
+          git diff HEAD~1 HEAD > changes.diff || echo "First commit, no diff" > changes.diff
+        fi
+        echo "DIFF_FILE=changes.diff" >> $GITHUB_ENV
+
+    - name: AI Code Review (Claude Score)
+      env:
+        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+      run: |
+        if [ -z "$CLAUDE_API_KEY" ]; then
+          echo "❌ 錯誤：找不到 CLAUDE_API_KEY，請在 GitHub Secrets 中設定。"
+          exit 0
+        fi
+
+        DIFF_CONTENT=$(cat changes.diff | head -c 15000)
+        
+        PROMPT="你是一位資深的 Full-Stack 工程師與技術架構師。請根據以下 Git Diff 內容，從三個維度進行評分（1-5 分，5 分為最佳），並提供具體建議：\n\n1. **代碼品質 (Quality)**: 是否有潛在 Bug 或安全風險？\n2. **語法規範 (Style)**: 代碼是否整潔、符合該語言最佳實踐？\n3. **複雜度 (Complexity)**: 邏輯是否過於混亂、有無優化空間？\n\n請嚴格按照以下格式輸出：\n\n--- [📊 Code Review Score Report] ---\n- 代碼品質: [分數]\n- 語法規範: [分數]\n- 複雜度: [分數]\n- **總分: [加總]/15**\n\n--- [📝 具體改進建議] ---\n[在此提供詳細建議]\n\n變更內容如下：\n$DIFF_CONTENT"
+        
+        jq -n --arg diff "$DIFF_CONTENT" \
+          --arg prompt "$PROMPT" \
+          '{
+            model: "claude-3-5-sonnet-20240620",
+            max_tokens: 2048,
+            messages: [{
+              role: "user",
+              content: $prompt
+            }]
+          }' > payload.json
+
+        curl -s -X POST "https://api.anthropic.com/v1/messages" \
+             -H "x-api-key: $CLAUDE_API_KEY" \
+             -H "anthropic-version: 2023-06-01" \
+             -H "content-type: application/json" \
+             -d @payload.json > result.json
+        
+        cat result.json | jq -r '.content[0].text'

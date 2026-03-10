@@ -1,0 +1,389 @@
+{
+  "defaultSpecies": "cat",
+  "species": {
+    "cat": {
+      "label": "貓咪 (Cat)",
+      "genes": {
+        "length": {
+          "label": "毛長 (Length)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "labels": {
+            "not_expressed": "短毛",
+            "carrier": "短毛帶長毛",
+            "expressed": "長毛"
+          }
+        },
+        "wirehair": {
+          "label": "粗硬毛 (Wirehair)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "粗硬毛",
+            "not_expressed": "無粗硬毛"
+          }
+        },
+        "laperm": {
+          "label": "LaPerm",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "LaPerm 捲毛",
+            "not_expressed": "無 LaPerm"
+          }
+        },
+        "cornish": {
+          "label": "柯尼斯捲毛 (Cornish Rex)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "柯尼斯捲毛",
+            "not_expressed": "正常毛"
+          }
+        },
+        "lykoi": {
+          "label": "狼貓 (Lykoi)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "狼貓毛",
+            "not_expressed": "正常毛"
+          }
+        },
+        "red": {
+          "label": "紅色/橘色 (Red/X-linked)",
+          "category": "compound",
+          "inputType": "genotype",
+          "labels": {
+            "major": "紅貓 (Orange/Red)",
+            "middle": "玳瑁 (Tortoiseshell)",
+            "minor": "非紅貓 (Black/Brown)"
+          }
+        },
+        "dilute": {
+          "label": "淡化基因 (Dilute)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "淡化色 (Blue/Lilac...)",
+            "not_expressed": "未淡化"
+          }
+        },
+        "caramel": {
+          "label": "焦糖化 (Caramel)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "焦糖色",
+            "not_expressed": "無焦糖化"
+          }
+        },
+        "agouti": {
+          "label": "刺鼠基因 (Agouti/Tabby)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "虎斑 (Tabby)",
+            "not_expressed": "單色 (Solid)"
+          }
+        },
+        "silver": {
+          "label": "銀漸層 (Silver/Inhibitor)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "銀色/煙燻色 (Silver/Smoke)",
+            "not_expressed": "無銀色"
+          }
+        },
+        "wideband": {
+          "label": "寬頻基因 (Wideband)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "金吉拉/漸層 (Chinchilla/Shaded)",
+            "not_expressed": "正常斑點"
+          }
+        },
+        "sunshine": {
+          "label": "陽光基因 (Sunshine)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "陽光虎斑 (Sunshine)",
+            "not_expressed": "正常色"
+          }
+        },
+        "tick": {
+          "label": "多段紋 (Ticked Tabby)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "多段/阿比西尼亞紋",
+            "not_expressed": "非多段紋"
+          }
+        },
+        "mackerel": {
+          "label": "鯖魚紋 (Mackerel)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "鯖魚紋 (條紋)",
+            "not_expressed": "古典紋 (螺旋)"
+          }
+        },
+        "spot": {
+          "label": "斑點虎斑 (Spotted)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "斑點",
+            "not_expressed": "連貫條紋"
+          }
+        },
+        "white_spotting": {
+          "label": "白斑 (White Spotting)",
+          "category": "compound",
+          "inputType": "genotype",
+          "labels": {
+            "major": "高白/梵色 (High White)",
+            "middle": "雙色 (Bicolor)",
+            "minor": "無白斑"
+          }
+        },
+        "dom_white": {
+          "label": "全白 (Dominant White)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "全身純白",
+            "not_expressed": "展現底色"
+          }
+        },
+        "gloves": {
+          "label": "白手套 (Gloves)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "白手套 (Mitted)",
+            "not_expressed": "無手套"
+          }
+        },
+        "karpati": {
+          "label": "喀爾巴阡 (Karpati)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "Karpati 褪色",
+            "not_expressed": "正常"
+          }
+        },
+        "curl": {
+          "label": "美國捲耳 (Curl)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "捲耳",
+            "not_expressed": "正常耳"
+          }
+        },
+        "ringtail": {
+          "label": "環尾 (Ringtail)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "環狀捲尾",
+            "not_expressed": "正常尾"
+          }
+        },
+        "bobtail": {
+          "label": "日式短尾 (Bobtail/Kink)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "短/麒麟尾",
+            "not_expressed": "正常長尾"
+          }
+        },
+        "polydactyl": {
+          "label": "多趾 (Polydactyl)",
+          "category": "dominant",
+          "inputType": "genotype",
+          "labels": {
+            "expressed": "多趾",
+            "not_expressed": "正常趾"
+          }
+        },
+        "munchkin": {
+          "label": "短腿 (Munchkin)",
+          "category": "special",
+          "inputType": "option",
+          "specialRuleKey": "munchkin"
+        },
+        "manx": {
+          "label": "曼島無尾 (Manx)",
+          "category": "special",
+          "inputType": "option",
+          "specialRuleKey": "manx"
+        },
+        "fold": {
+          "label": "蘇格蘭摺耳 (Fold)",
+          "category": "special",
+          "inputType": "option",
+          "specialRuleKey": "fold"
+        },
+        "rexsphynx": {
+          "label": "斯芬克斯 (Rex/Sphynx)",
+          "category": "special",
+          "inputType": "option",
+          "specialRuleKey": "rexsphynx"
+        },
+        "eumelanin": {
+          "label": "真黑色素 (B Locus)",
+          "category": "special",
+          "inputType": "option",
+          "specialRuleKey": "eumelanin"
+        },
+        "point": {
+          "label": "重點色 (C Locus)",
+          "category": "special",
+          "inputType": "option",
+          "specialRuleKey": "point"
+        }
+      }
+    },
+    "gecko": {
+      "label": "守宮 (Gecko)",
+      "genes": {
+        "albino": {
+          "label": "白子 (Albino)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "description": "缺乏黑色素，體色偏橘黃或偏白，眼睛可能呈現紅色。",
+          "labels": {
+            "expressed": "白子",
+            "carrier": "白子帶因",
+            "not_expressed": "非白子"
+          }
+        },
+        "patternless": {
+          "label": "無紋 (Patternless)",
+          "category": "recessive",
+          "inputType": "genotype",
+          "description": "身體沒有任何斑紋，呈現單一甚至漸層色。",
+          "labels": {
+            "expressed": "無紋",
+            "carrier": "無紋帶因",
+            "not_expressed": "有紋"
+          }
+        }
+      }
+    }
+  },
+  "specialRules": {
+    "munchkin": {
+      "munchkin|munchkin": {
+        "短腿 (Munchkin)": 0.66,
+        "正常腿": 0.33
+      },
+      "munchkin|normal": {
+        "短腿 (Munchkin)": 0.5,
+        "正常腿": 0.5
+      },
+      "normal|normal": {
+        "正常腿": 1.0
+      }
+    },
+    "manx": {
+      "manx|manx": {
+        "無尾/短尾 (Manx)": 0.66,
+        "正常尾": 0.33
+      },
+      "manx|normal": {
+        "無尾/短尾 (Manx)": 0.5,
+        "正常尾": 0.5
+      },
+      "normal|normal": {
+        "正常尾": 1.0
+      }
+    },
+    "fold": {
+      "fold|fold": {
+        "摺耳 (Fold)": 0.66,
+        "正常耳": 0.33
+      },
+      "fold|normal": {
+        "摺耳 (Fold)": 0.5,
+        "正常耳": 0.5
+      },
+      "normal|normal": {
+        "正常耳": 1.0
+      }
+    },
+    "rexsphynx": {
+      "HrHr|HrHr": {
+        "正常毛": 1.0
+      },
+      "HrHr|Hrhr": {
+        "正常毛": 1.0
+      },
+      "HrHr|hrhr": {
+        "正常毛": 1.0
+      },
+      "Hrhr|Hrhr": {
+        "正常毛": 0.75,
+        "斯芬克斯無毛 (Sphynx)": 0.25
+      },
+      "Hrhr|hrhr": {
+        "正常毛": 0.5,
+        "斯芬克斯無毛 (Sphynx)": 0.5
+      },
+      "hrhr|hrhr": {
+        "斯芬克斯無毛 (Sphynx)": 1.0
+      }
+    },
+    "eumelanin": {
+      "B|B": {
+        "黑色 (Black)": 1.0
+      },
+      "B|b": {
+        "黑色帶巧克力": 0.5,
+        "黑色": 0.5
+      },
+      "B|bl": {
+        "黑色帶肉桂": 0.5,
+        "黑色": 0.5
+      },
+      "b|b": {
+        "巧克力色 (Chocolate)": 1.0
+      },
+      "b|bl": {
+        "巧克力色": 0.5,
+        "肉桂色": 0.5
+      },
+      "bl|bl": {
+        "肉桂色 (Cinnamon)": 1.0
+      }
+    },
+    "point": {
+      "C|C": {
+        "無重點色限制": 1.0
+      },
+      "C|cb": {
+        "無重點色限制 (帶因)": 1.0
+      },
+      "C|cs": {
+        "無重點色限制 (帶因)": 1.0
+      },
+      "cb|cb": {
+        "緬甸重點色 (Sepia)": 1.0
+      },
+      "cs|cs": {
+        "暹羅重點色 (Colorpoint)": 1.0
+      },
+      "cb|cs": {
+        "貂皮重點色 (Mink)": 1.0
+      }
+    }
+  }
+}
