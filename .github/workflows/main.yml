@@ -28,21 +28,24 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+    - name: Debug Check Secrets
+      run: |
+        echo "Check if GCP_IP is defined..."
+        if [ -z "${{ secrets.GCP_IP }}" ]; then echo "GCP_IP is EMPTY"; else echo "GCP_IP exists"; fi
+        
     - name: Deploy to GCP VM via SSH
-      uses: appleboy/ssh-action@v1.0.3  # 更新到穩定版本
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.GCP_IP }}
         username: ${{ secrets.GCP_USERNAME }}
         key: ${{ secrets.GCP_SSH_KEY }}
+        port: 22
         script: |
-          # 如果目錄不存在則 Clone，存在則 Pull
           if [ ! -d "PET_AI_ASSISTANT" ]; then
             git clone https://github.com/steve-shih/PET_AI_ASSISTANT.git
           fi
           cd PET_AI_ASSISTANT
           git fetch origin main
           git reset --hard origin/main
-          
-          # 正式啟動 Docker
           sudo docker compose down
           sudo docker compose up -d --build
