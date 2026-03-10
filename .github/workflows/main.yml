@@ -24,24 +24,25 @@ jobs:
       run: python -m unittest test_genetics.py
 
   deploy:
-    needs: backend-tests  # 只有測試通過後才執行部署
+    needs: backend-tests
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
     - name: Deploy to GCP VM via SSH
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v1.0.3  # 更新到穩定版本
       with:
         host: ${{ secrets.GCP_IP }}
         username: ${{ secrets.GCP_USERNAME }}
         key: ${{ secrets.GCP_SSH_KEY }}
         script: |
-          # 進入專案目錄
-          cd ~/PET_AI_ASSISTANT || git clone https://github.com/steve-shih/PET_AI_ASSISTANT.git ~/PET_AI_ASSISTANT
-          cd ~/PET_AI_ASSISTANT
+          # 如果目錄不存在則 Clone，存在則 Pull
+          if [ ! -d "PET_AI_ASSISTANT" ]; then
+            git clone https://github.com/steve-shih/PET_AI_ASSISTANT.git
+          fi
+          cd PET_AI_ASSISTANT
+          git fetch origin main
+          git reset --hard origin/main
           
-          # 更新程式碼
-          git pull origin main
-          
-          # 重新啟動 Docker 服務
-          docker compose down
-          docker compose up -d --build
+          # 正式啟動 Docker
+          sudo docker compose down
+          sudo docker compose up -d --build
