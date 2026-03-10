@@ -1,4 +1,4 @@
-name: BreedGenetics CI/CD & AI Review (Claude)
+name: BreedGenetics CI/CD & AI Review (Claude Score)
 
 on:
   push:
@@ -31,12 +31,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # 獲取所有歷史以確保 diff 正常
+        fetch-depth: 0
         
     - name: Get Code Changes
       id: get_diff
       run: |
-        # 根據如果是 PR 還是 Push 來決定比對對象
         if [ "${{ github.event_name }}" == "pull_request" ]; then
           git diff origin/${{ github.base_ref }} HEAD > changes.diff
         else
@@ -50,32 +49,31 @@ jobs:
       run: |
         if [ -z "$CLAUDE_API_KEY" ]; then
           echo "❌ 錯誤：找不到 CLAUDE_API_KEY，請在 GitHub Secrets 中設定。"
-          exit 0 # 不中斷流程，但給出提示
+          exit 0
         fi
 
-        # 讀取 Diff 並截斷以防超過 tokens 限制
         DIFF_CONTENT=$(cat changes.diff | head -c 15000)
         
-        # 使用 jq 安全地建構 JSON 請求
+        # 強制評分格式的 Prompt
+        PROMPT="你是一位資深的 Full-Stack 工程師與技術架構師。請根據以下 Git Diff 內容，從三個維度進行評分（1-5 分，5 分為最佳），並提供具體建議：\n\n1. **代碼品質 (Quality)**: 是否有潛在 Bug 或安全風險？\n2. **語法規範 (Style)**: 代碼是否整潔、符合該語言最佳實踐？\n3. **複雜度 (Complexity)**: 邏輯是否過於混亂、有無優化空間？\n\n請嚴格按照以下格式輸出：\n\n--- [📊 Code Review Score Report] ---\n- 代碼品質: [分數]\n- 語法規範: [分數]\n- 複雜度: [分數]\n- **總分: [加總]/15**\n\n--- [📝 具體改進建議] ---\n[在此提供詳細建議]\n\n變更內容如下：\n$DIFF_CONTENT"
+        
         jq -n --arg diff "$DIFF_CONTENT" \
-          --arg prompt "你是一位資深的 Full-Stack 工程師。請檢閱以下這段程式碼的變更（Git Diff），找出潛在的 Bug、安全性風險或效能問題，並用繁體中文給出具體的改進建議。\n\n變更內容：\n" \
+          --arg prompt "$PROMPT" \
           '{
             model: "claude-3-5-sonnet-20240620",
             max_tokens: 2048,
             messages: [{
               role: "user",
-              content: ($prompt + $diff)
+              content: $prompt
             }]
           }' > payload.json
 
-        # 呼叫 API 並獲取回應
         curl -s -X POST "https://api.anthropic.com/v1/messages" \
              -H "x-api-key: $CLAUDE_API_KEY" \
              -H "anthropic-version: 2023-06-01" \
              -H "content-type: application/json" \
              -d @payload.json > result.json
         
-        # 檢查是否含有錯誤訊息
         ERROR_MSG=$(cat result.json | jq -r '.error.message // empty')
         if [ ! -z "$ERROR_MSG" ]; then
           echo "❌ Claude API 報錯: $ERROR_MSG"
@@ -83,7 +81,7 @@ jobs:
         fi
 
         echo "=========================================="
-        echo "🚀 Claude AI 程式碼檢閱建議 :"
+        echo "🚀 Claude 核心代碼評分報告 :"
         echo "=========================================="
         cat result.json | jq -r '.content[0].text'
         echo "=========================================="
