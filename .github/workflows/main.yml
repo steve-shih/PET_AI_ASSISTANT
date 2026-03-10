@@ -1,7 +1,9 @@
-name: BreedGenetics CI/CD
+name: BreedGenetics CI/CD & AI Review
 
 on:
   push:
+    branches: [ "main" ]
+  pull_request:
     branches: [ "main" ]
 
 jobs:
@@ -23,8 +25,51 @@ jobs:
     - name: Run tests
       run: python -m unittest test_genetics.py
 
-  deploy:
+  ai-review:
     needs: backend-tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2  # 抓取最近兩次提交以獲取差異
+        
+    - name: Get Code Changes
+      id: get_diff
+      run: |
+        # 獲取本次 Push 的差異內容
+        git diff HEAD^ HEAD > changes.diff
+        echo "DIFF_FILE=changes.diff" >> $GITHUB_ENV
+
+    - name: AI Code Review (Gemini)
+      run: |
+        # 使用 curl 直接呼叫 Gemini API
+        DIFF_CONTENT=$(cat changes.diff | head -c 20000) # 避免 diff 太長超過限制
+        
+        PROMPT="你是一位資深的 Full-Stack 工程師。請檢閱以下這段程式碼的變更（Git Diff），找出潛在的 Bug、安全性風險或效能問題，並用繁體中文給出具體的改進建議。\n\n變更內容：\n$DIFF_CONTENT"
+        
+        # 修正 JSON 格式轉義問題
+        SAFE_PROMPT=$(echo "$PROMPT" | jq -aRs .)
+
+        curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${{ secrets.GEMINI_API_KEY }}" \
+             -H "Content-Type: application/json" \
+             -d "{
+               \"contents\": [{
+                 \"parts\":[{
+                   \"text\": $SAFE_PROMPT
+                 }]
+               }]
+             }" > result.json
+        
+        # 顯示 AI 的建議
+        echo "=========================================="
+        echo "🚀 AI 程式碼檢閱建議 (Gemini):"
+        echo "=========================================="
+        cat result.json | jq -r '.candidates[0].content.parts[0].text'
+        echo "=========================================="
+
+  deploy:
+    needs: [backend-tests, ai-review]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -36,16 +81,11 @@ jobs:
         key: ${{ secrets.GCP_SSH_KEY }}
         port: 22
         script: |
-          # 確保進入正確目錄
           if [ ! -d "PET_AI_ASSISTANT" ]; then
             git clone https://github.com/steve-shih/PET_AI_ASSISTANT.git
           fi
           cd PET_AI_ASSISTANT
-          
-          # 更新代碼
           git fetch origin main
           git reset --hard origin/main
-          
-          # 啟動服務 (使用 GCP 支援的 docker-compose)
           docker-compose down || true
           docker-compose up -d --build
