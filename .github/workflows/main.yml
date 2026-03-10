@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "feature/full-deployment" ]
 
 jobs:
   backend-tests:
@@ -28,43 +28,60 @@ jobs:
   ai-review:
     needs: backend-tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 2
+        fetch-depth: 0 # 獲取所有歷史以確保 diff 正常
         
     - name: Get Code Changes
       id: get_diff
       run: |
-        git diff HEAD^ HEAD > changes.diff
+        # 根據如果是 PR 還是 Push 來決定比對對象
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          git diff origin/${{ github.base_ref }} HEAD > changes.diff
+        else
+          git diff HEAD~1 HEAD > changes.diff || echo "First commit, no diff" > changes.diff
+        fi
         echo "DIFF_FILE=changes.diff" >> $GITHUB_ENV
 
     - name: AI Code Review (Claude)
+      env:
+        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       run: |
-        DIFF_CONTENT=$(cat changes.diff | head -c 20000)
-        
-        # 準備要發送給 Claude 的 Prompt
-        PROMPT="你是一位資深的 Full-Stack 工程師。請檢閱以下這段程式碼的變更（Git Diff），找出潛在的 Bug、安全性風險或效能問題，並用繁體中文給出具體的改進建議。\n\n變更內容：\n$DIFF_CONTENT"
-        
-        # 轉義 JSON 文字
-        SAFE_PROMPT=$(echo "$PROMPT" | jq -aRs .)
+        if [ -z "$CLAUDE_API_KEY" ]; then
+          echo "❌ 錯誤：找不到 CLAUDE_API_KEY，請在 GitHub Secrets 中設定。"
+          exit 0 # 不中斷流程，但給出提示
+        fi
 
-        # 呼叫 Anthropic Claude API
+        # 讀取 Diff 並截斷以防超過 tokens 限制
+        DIFF_CONTENT=$(cat changes.diff | head -c 15000)
+        
+        # 使用 jq 安全地建構 JSON 請求
+        jq -n --arg diff "$DIFF_CONTENT" \
+          --arg prompt "你是一位資深的 Full-Stack 工程師。請檢閱以下這段程式碼的變更（Git Diff），找出潛在的 Bug、安全性風險或效能問題，並用繁體中文給出具體的改進建議。\n\n變更內容：\n" \
+          '{
+            model: "claude-3-5-sonnet-20240620",
+            max_tokens: 2048,
+            messages: [{
+              role: "user",
+              content: ($prompt + $diff)
+            }]
+          }' > payload.json
+
+        # 呼叫 API 並獲取回應
         curl -s -X POST "https://api.anthropic.com/v1/messages" \
-             -H "x-api-key: ${{ secrets.CLAUDE_API_KEY }}" \
+             -H "x-api-key: $CLAUDE_API_KEY" \
              -H "anthropic-version: 2023-06-01" \
              -H "content-type: application/json" \
-             -d "{
-               \"model\": \"claude-3-5-sonnet-20240620\",
-               \"max_tokens\": 2048,
-               \"messages\": [{
-                 \"role\": \"user\",
-                 \"content\": $SAFE_PROMPT
-               }]
-             }" > result.json
+             -d @payload.json > result.json
         
-        # 解析並顯示 Claude 的建議
+        # 檢查是否含有錯誤訊息
+        ERROR_MSG=$(cat result.json | jq -r '.error.message // empty')
+        if [ ! -z "$ERROR_MSG" ]; then
+          echo "❌ Claude API 報錯: $ERROR_MSG"
+          exit 0
+        fi
+
         echo "=========================================="
         echo "🚀 Claude AI 程式碼檢閱建議 :"
         echo "=========================================="
@@ -84,10 +101,7 @@ jobs:
         key: ${{ secrets.GCP_SSH_KEY }}
         port: 22
         script: |
-          if [ ! -d "PET_AI_ASSISTANT" ]; then
-            git clone https://github.com/steve-shih/PET_AI_ASSISTANT.git
-          fi
-          cd PET_AI_ASSISTANT
+          cd ~/PET_AI_ASSISTANT || exit
           git fetch origin main
           git reset --hard origin/main
           docker-compose down || true
