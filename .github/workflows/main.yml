@@ -1,4 +1,4 @@
-name: BreedGenetics CI/CD & AI Review
+name: BreedGenetics CI/CD & AI Review (Claude)
 
 on:
   push:
@@ -32,40 +32,43 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 2  # 抓取最近兩次提交以獲取差異
+        fetch-depth: 2
         
     - name: Get Code Changes
       id: get_diff
       run: |
-        # 獲取本次 Push 的差異內容
         git diff HEAD^ HEAD > changes.diff
         echo "DIFF_FILE=changes.diff" >> $GITHUB_ENV
 
-    - name: AI Code Review (Gemini)
+    - name: AI Code Review (Claude)
       run: |
-        # 使用 curl 直接呼叫 Gemini API
-        DIFF_CONTENT=$(cat changes.diff | head -c 20000) # 避免 diff 太長超過限制
+        DIFF_CONTENT=$(cat changes.diff | head -c 20000)
         
+        # 準備要發送給 Claude 的 Prompt
         PROMPT="你是一位資深的 Full-Stack 工程師。請檢閱以下這段程式碼的變更（Git Diff），找出潛在的 Bug、安全性風險或效能問題，並用繁體中文給出具體的改進建議。\n\n變更內容：\n$DIFF_CONTENT"
         
-        # 修正 JSON 格式轉義問題
+        # 轉義 JSON 文字
         SAFE_PROMPT=$(echo "$PROMPT" | jq -aRs .)
 
-        curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${{ secrets.GEMINI_API_KEY }}" \
-             -H "Content-Type: application/json" \
+        # 呼叫 Anthropic Claude API
+        curl -s -X POST "https://api.anthropic.com/v1/messages" \
+             -H "x-api-key: ${{ secrets.CLAUDE_API_KEY }}" \
+             -H "anthropic-version: 2023-06-01" \
+             -H "content-type: application/json" \
              -d "{
-               \"contents\": [{
-                 \"parts\":[{
-                   \"text\": $SAFE_PROMPT
-                 }]
+               \"model\": \"claude-3-5-sonnet-20240620\",
+               \"max_tokens\": 2048,
+               \"messages\": [{
+                 \"role\": \"user\",
+                 \"content\": $SAFE_PROMPT
                }]
              }" > result.json
         
-        # 顯示 AI 的建議
+        # 解析並顯示 Claude 的建議
         echo "=========================================="
-        echo "🚀 AI 程式碼檢閱建議 (Gemini):"
+        echo "🚀 Claude AI 程式碼檢閱建議 :"
         echo "=========================================="
-        cat result.json | jq -r '.candidates[0].content.parts[0].text'
+        cat result.json | jq -r '.content[0].text'
         echo "=========================================="
 
   deploy:
