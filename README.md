@@ -4,7 +4,14 @@
 ![GCP Deployment](https://img.shields.io/badge/Platform-GCP-blue)
 ![Docker Supported](https://img.shields.io/badge/Docker-Ready-blue)
 
+
+DEMO https://www.youtube.com/watch?v=MQBig3pq0t0
 這是一個專為寵物繁育者設計的高級基因機率分析系統，目前支援 **貓咪 (Cat)** 與 **守宮 (Gecko)** 的多基因組合演算。
+使用畫面~~~ 
+<img width="1891" height="619" alt="image" src="https://github.com/user-attachments/assets/9d0de98c-ff03-4b87-8cc4-ed16efad5299" />
+<img width="1875" height="792" alt="image" src="https://github.com/user-attachments/assets/93223248-727d-4265-92cf-4c0ac3a1a3e0" />
+<img width="663" height="796" alt="image" src="https://github.com/user-attachments/assets/f1dc601f-0d30-4628-9527-88a732ff60e4" />
+
 
 ---
 
